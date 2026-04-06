@@ -17,6 +17,7 @@ const loadingOverlay = document.getElementById('loading-overlay');
 let markers = [];
 let activeSite = null;
 let isFlying = false;
+let hudVisible = true;
 
 // --- TILING STATE ---
 let tiles = []; 
@@ -73,8 +74,14 @@ function init() {
     window.addEventListener('resize', onWindowResize);
     window.addEventListener('click', onSiteClick);
     
-    // UI Close
+    // UI Events
     document.getElementById('close-info').addEventListener('click', closeInfo);
+    document.getElementById('hud-toggle').addEventListener('click', toggleHUD);
+    window.addEventListener('keydown', (e) => {
+        if (e.key.toLowerCase() === 'h') toggleHUD();
+        if (e.key === 'Escape') closeInfo();
+    });
+
     document.getElementById('fly-to-btn').addEventListener('click', () => {
         if (activeSite) flyToSite(activeSite);
     });
@@ -99,12 +106,23 @@ function setupUI() {
 
     // Populate Sidebar
     const list = document.getElementById('sites-list');
-    lunarSites.forEach(site => {
+    lunarSites.forEach(p => {
         const item = document.createElement('div');
         item.className = 'site-item';
-        item.innerHTML = `<h4>${site.mission}</h4>`;
-        item.onclick = () => showSiteInfo(site);
+        item.innerHTML = `<h4>${p.mission}</h4>`;
+        item.dataset.mission = p.mission;
+        item.onclick = () => showSiteInfo(p);
         list.appendChild(item);
+    });
+}
+
+function toggleHUD() {
+    hudVisible = !hudVisible;
+    document.body.classList.toggle('hud-hidden', !hudVisible);
+    
+    // Dim markers if UI is hidden for total immersion
+    markers.forEach(m => {
+        m.visible = hudVisible || (activeSite && m.userData.site.mission === activeSite.mission);
     });
 }
 
@@ -401,10 +419,13 @@ function loadTile(tile) {
 
 // --- LANDING SITES ---
 function getVector3FromLatLng(lat, lng, radius) {
+    // CALIBRATION: The 27K LROC map center (0,0) is at UV 0.5
+    // Standard Three.js mapping alignment
     const phi = (90 - lat) * (Math.PI / 180);
-    const theta = (lng + 180) * (Math.PI / 180);
+    const theta = (lng + 90) * (Math.PI / 180); // Offset for map orientation
+    
     return new THREE.Vector3(
-        - (radius * Math.sin(phi) * Math.cos(theta)),
+        radius * Math.sin(phi) * Math.cos(theta),
         radius * Math.cos(phi),
         radius * Math.sin(phi) * Math.sin(theta)
     );
@@ -438,20 +459,50 @@ function createLandingSiteMarkers() {
 
 function showSiteInfo(site) {
     activeSite = site;
+    
+    // Content Update
     document.getElementById('info-title').textContent = site.mission;
     document.getElementById('info-year').textContent = site.year;
     document.getElementById('info-operator').textContent = site.operator;
     document.getElementById('info-description').textContent = site.description;
     document.getElementById('info-details').textContent = site.details;
+    document.getElementById('info-image').src = site.image;
+    document.getElementById('source-link').href = site.source;
     
+    // Formatted Coordinates display
+    const latStr = `${Math.abs(site.coordinates.lat).toFixed(2)}°${site.coordinates.lat >= 0 ? 'N' : 'S'}`;
+    const lngStr = `${Math.abs(site.coordinates.lng).toFixed(2)}°${site.coordinates.lng >= 0 ? 'E' : 'W'}`;
+    document.getElementById('info-coords').textContent = `${latStr} | ${lngStr}`;
+    
+    // UI states
     document.getElementById('info-panel').classList.add('active');
-    controls.autoRotate = false; // Pause rotation for inspection
+    controls.autoRotate = false;
+    
+    // Focus Highlight in Sidebar
+    document.querySelectorAll('.site-item').forEach(el => {
+        el.classList.toggle('active', el.dataset.mission === site.mission);
+    });
+
+    // Marker Focus (Dim others)
+    markers.forEach(m => {
+        const isSelf = m.userData.site.mission === site.mission;
+        m.material.opacity = isSelf ? 1.0 : 0.2;
+        m.scale.setScalar(isSelf ? 1.5 : 0.8);
+    });
 }
 
 function closeInfo() {
     document.getElementById('info-panel').classList.remove('active');
     activeSite = null;
     controls.autoRotate = true;
+    
+    // Reset Markers
+    markers.forEach(m => {
+        m.material.opacity = 0.8;
+        m.scale.setScalar(1.0);
+    });
+    
+    document.querySelectorAll('.site-item').forEach(el => el.classList.remove('active'));
 }
 
 function onSiteClick(event) {
@@ -470,21 +521,25 @@ function onSiteClick(event) {
 }
 
 function flyToSite(site) {
+    if (isFlying) return;
     isFlying = true;
-    const targetPos = getVector3FromLatLng(site.coordinates.lat, site.coordinates.lng, 10);
+    
+    // Camera position relative to site normal
+    const normal = getVector3FromLatLng(site.coordinates.lat, site.coordinates.lng, 1);
+    const targetPos = normal.clone().multiplyScalar(9); // Height of 9 units
     
     // Simple Lerp Fly-To
     const startPos = camera.position.clone();
-    const duration = 2000;
+    const duration = 1500;
     const startTime = performance.now();
 
     function updateCamera(time) {
         const elapsed = time - startTime;
         const progress = Math.min(elapsed / duration, 1);
-        const ease = 1 - Math.pow(1 - progress, 3); // OutCubic
+        const ease = 1 - Math.pow(1 - progress, 4); // Quartic Out
 
         camera.position.lerpVectors(startPos, targetPos, ease);
-        controls.target.set(0,0,0);
+        controls.target.lerpVectors(new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,0), ease);
         
         if (progress < 1) {
             requestAnimationFrame(updateCamera);
@@ -527,11 +582,16 @@ function animate() {
     requestAnimationFrame(animate);
     controls.update();
     
-    // Animate Markers (Pulsing)
-    const time = performance.now() * 0.005;
-    markers.forEach(m => {
-        m.scale.setScalar(1 + Math.sin(time) * 0.2);
-    });
+    // Animate Markers (Only if not flying and site not focused)
+    if (!isFlying) {
+        const time = performance.now() * 0.005;
+        markers.forEach(m => {
+            const isSelf = activeSite && m.userData.site.mission === activeSite.mission;
+            if (!isSelf) {
+                m.scale.setScalar(1 + Math.sin(time) * 0.15);
+            }
+        });
+    }
 
     if (moon) {
         updateTiles();

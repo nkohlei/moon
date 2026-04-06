@@ -13,6 +13,10 @@
         <canvas id="lunar-canvas"></canvas>
         <!-- Control Overlay -->
         <div class="controls-overlay">
+            <button id="hud-toggle" class="btn-primary hud-btn" title="Toggle HUD (H)">
+                <span class="hud-icon"></span>
+                HUD
+            </button>
             <button id="atlas-toggle" class="btn-primary">
                 <span class="status-indicator"></span>
                 ATLAS MODE: <span id="atlas-status">OFF</span>
@@ -40,6 +44,10 @@
         <div id="info-panel" class="info-glass">
             <button id="close-info" class="close-btn">&times;</button>
             <div class="info-content">
+                <div class="info-image-container">
+                    <img id="info-image" src="" alt="Mission view">
+                    <div class="site-coords-pill" id="info-coords">0.00°N | 0.00°E</div>
+                </div>
                 <header>
                     <h2 id="info-title">MISSION NAME</h2>
                     <div class="meta-row">
@@ -55,7 +63,10 @@
                         <p id="info-details">More details...</p>
                     </div>
                 </div>
-                <button id="fly-to-btn" class="btn-secondary">FLY TO SITE</button>
+                <div class="info-actions">
+                    <button id="fly-to-btn" class="btn-secondary">FLY TO SITE</button>
+                    <a id="source-link" href="#" target="_blank" class="btn-outline">EXTERNAL SOURCE</a>
+                </div>
             </div>
         </div>
 
