@@ -419,10 +419,10 @@ function loadTile(tile) {
 
 // --- LANDING SITES ---
 function getVector3FromLatLng(lat, lng, radius) {
-    // CALIBRATION: The 27K LROC map center (0,0) is at UV 0.5
-    // Standard Three.js mapping alignment
+    // Standard Equirectangular mapping for Three.js SphereGeometry
+    // Lng 0 should be at UV 0.5 (center of map)
     const phi = (90 - lat) * (Math.PI / 180);
-    const theta = (lng + 90) * (Math.PI / 180); // Offset for map orientation
+    const theta = (lng) * (Math.PI / 180); 
     
     return new THREE.Vector3(
         radius * Math.sin(phi) * Math.cos(theta),
@@ -434,24 +434,41 @@ function getVector3FromLatLng(lat, lng, radius) {
 function createLandingSiteMarkers() {
     const markerGroup = new THREE.Group();
     
-    lunarSites.forEach(site => {
-        // Create marker mesh (Small glowing circle)
-        const geometry = new THREE.CircleGeometry(0.08, 32);
-        const material = new THREE.MeshBasicMaterial({ 
-            color: 0x00ff88, 
+    lunarSites.forEach(p => {
+        const isCrewed = p.type === "Crewed";
+        const color = isCrewed ? 0xffcc00 : 0x00ffff;
+        
+        const siteGroup = new THREE.Group();
+        
+        // 1. Inner Glow Core
+        const coreGeo = new THREE.CircleGeometry(0.06, 32);
+        const coreMat = new THREE.MeshBasicMaterial({ 
+            color: color, 
             transparent: true, 
-            opacity: 0.8,
+            opacity: 0.9,
+            side: THREE.DoubleSide 
+        });
+        const core = new THREE.Mesh(coreGeo, coreMat);
+        siteGroup.add(core);
+
+        // 2. Outer Scientific Brackets (Crosshair)
+        const bracketGeo = new THREE.RingGeometry(0.12, 0.14, 32, 1, 0, Math.PI * 2);
+        const bracketMat = new THREE.MeshBasicMaterial({ 
+            color: color, 
+            transparent: true, 
+            opacity: 0.4,
             side: THREE.DoubleSide
         });
-        const marker = new THREE.Mesh(geometry, material);
+        const brackets = new THREE.Mesh(bracketGeo, bracketMat);
+        siteGroup.add(brackets);
+
+        const pos = getVector3FromLatLng(p.coordinates.lat, p.coordinates.lng, RADIUS + 0.03);
+        siteGroup.position.copy(pos);
+        siteGroup.lookAt(new THREE.Vector3(0,0,0)); 
         
-        const pos = getVector3FromLatLng(site.coordinates.lat, site.coordinates.lng, RADIUS + 0.05);
-        marker.position.copy(pos);
-        marker.lookAt(new THREE.Vector3(0,0,0)); // Align to surface
-        
-        marker.userData = { site };
-        markerGroup.add(marker);
-        markers.push(marker);
+        siteGroup.userData = { site: p };
+        markerGroup.add(siteGroup);
+        markers.push(siteGroup);
     });
     
     scene.add(markerGroup);
@@ -467,6 +484,10 @@ function showSiteInfo(site) {
     document.getElementById('info-description').textContent = site.description;
     document.getElementById('info-details').textContent = site.details;
     document.getElementById('info-image').src = site.image;
+    document.getElementById('info-image').onerror = () => {
+        // Fallback if URL fails
+        document.getElementById('info-image').src = "https://www.lroc.asu.edu/featured_sites/view_site/1/image";
+    };
     document.getElementById('source-link').href = site.source;
     
     // Formatted Coordinates display
@@ -486,8 +507,10 @@ function showSiteInfo(site) {
     // Marker Focus (Dim others)
     markers.forEach(m => {
         const isSelf = m.userData.site.mission === site.mission;
-        m.material.opacity = isSelf ? 1.0 : 0.2;
-        m.scale.setScalar(isSelf ? 1.5 : 0.8);
+        // Access group children (Core and Brackets)
+        m.children[0].material.opacity = isSelf ? 1.0 : 0.1;
+        m.children[1].material.opacity = isSelf ? 0.8 : 0.05;
+        m.scale.setScalar(isSelf ? 1.6 : 0.7);
     });
 }
 
@@ -498,7 +521,8 @@ function closeInfo() {
     
     // Reset Markers
     markers.forEach(m => {
-        m.material.opacity = 0.8;
+        m.children[0].material.opacity = 0.8; // Reset core
+        m.children[1].material.opacity = 0.4; // Reset brackets
         m.scale.setScalar(1.0);
     });
     
