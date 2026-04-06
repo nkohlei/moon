@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { lunarSites } from './lunarSites.js';
 import './style.css';
 
 // --- CONFIGURATION ---
@@ -11,6 +12,11 @@ let scene, camera, renderer, controls, moon, earth, sunLight;
 let atlasMode = false;
 let shadedMaterial, atlasMaterial;
 const loadingOverlay = document.getElementById('loading-overlay');
+
+// --- MISSION STATE ---
+let markers = [];
+let activeSite = null;
+let isFlying = false;
 
 // --- TILING STATE ---
 let tiles = []; 
@@ -65,8 +71,14 @@ function init() {
 
     // Event Listeners
     window.addEventListener('resize', onWindowResize);
-    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('click', onSiteClick);
     
+    // UI Close
+    document.getElementById('close-info').addEventListener('click', closeInfo);
+    document.getElementById('fly-to-btn').addEventListener('click', () => {
+        if (activeSite) flyToSite(activeSite);
+    });
+
     animate();
 }
 
@@ -83,6 +95,16 @@ function setupUI() {
             // SWAP MATERIAL for perfect Atlas visibility
             moon.material = atlasMode ? atlasMaterial : shadedMaterial;
         }
+    });
+
+    // Populate Sidebar
+    const list = document.getElementById('sites-list');
+    lunarSites.forEach(site => {
+        const item = document.createElement('div');
+        item.className = 'site-item';
+        item.innerHTML = `<h4>${site.mission}</h4>`;
+        item.onclick = () => showSiteInfo(site);
+        list.appendChild(item);
     });
 }
 
@@ -290,6 +312,9 @@ function loadMoon() {
         
         // Initialize High-Res Tiles (Transparent by default)
         createTiles();
+
+        // Create Landing Site Markers
+        createLandingSiteMarkers();
         
         hideLoading();
     }, undefined, (err) => {
@@ -374,6 +399,102 @@ function loadTile(tile) {
     });
 }
 
+// --- LANDING SITES ---
+function getVector3FromLatLng(lat, lng, radius) {
+    const phi = (90 - lat) * (Math.PI / 180);
+    const theta = (lng + 180) * (Math.PI / 180);
+    return new THREE.Vector3(
+        - (radius * Math.sin(phi) * Math.cos(theta)),
+        radius * Math.cos(phi),
+        radius * Math.sin(phi) * Math.sin(theta)
+    );
+}
+
+function createLandingSiteMarkers() {
+    const markerGroup = new THREE.Group();
+    
+    lunarSites.forEach(site => {
+        // Create marker mesh (Small glowing circle)
+        const geometry = new THREE.CircleGeometry(0.08, 32);
+        const material = new THREE.MeshBasicMaterial({ 
+            color: 0x00ff88, 
+            transparent: true, 
+            opacity: 0.8,
+            side: THREE.DoubleSide
+        });
+        const marker = new THREE.Mesh(geometry, material);
+        
+        const pos = getVector3FromLatLng(site.coordinates.lat, site.coordinates.lng, RADIUS + 0.05);
+        marker.position.copy(pos);
+        marker.lookAt(new THREE.Vector3(0,0,0)); // Align to surface
+        
+        marker.userData = { site };
+        markerGroup.add(marker);
+        markers.push(marker);
+    });
+    
+    scene.add(markerGroup);
+}
+
+function showSiteInfo(site) {
+    activeSite = site;
+    document.getElementById('info-title').textContent = site.mission;
+    document.getElementById('info-year').textContent = site.year;
+    document.getElementById('info-operator').textContent = site.operator;
+    document.getElementById('info-description').textContent = site.description;
+    document.getElementById('info-details').textContent = site.details;
+    
+    document.getElementById('info-panel').classList.add('active');
+    controls.autoRotate = false; // Pause rotation for inspection
+}
+
+function closeInfo() {
+    document.getElementById('info-panel').classList.remove('active');
+    activeSite = null;
+    controls.autoRotate = true;
+}
+
+function onSiteClick(event) {
+    const mouse = new THREE.Vector2(
+        (event.clientX / window.innerWidth) * 2 - 1,
+        -(event.clientY / window.innerHeight) * 2 + 1
+    );
+
+    const raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObjects(markers);
+    
+    if (intersects.length > 0) {
+        showSiteInfo(intersects[0].object.userData.site);
+    }
+}
+
+function flyToSite(site) {
+    isFlying = true;
+    const targetPos = getVector3FromLatLng(site.coordinates.lat, site.coordinates.lng, 10);
+    
+    // Simple Lerp Fly-To
+    const startPos = camera.position.clone();
+    const duration = 2000;
+    const startTime = performance.now();
+
+    function updateCamera(time) {
+        const elapsed = time - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const ease = 1 - Math.pow(1 - progress, 3); // OutCubic
+
+        camera.position.lerpVectors(startPos, targetPos, ease);
+        controls.target.set(0,0,0);
+        
+        if (progress < 1) {
+            requestAnimationFrame(updateCamera);
+        } else {
+            isFlying = false;
+        }
+    }
+    requestAnimationFrame(updateCamera);
+}
+
 // --- INTERACTION ---
 function onMouseMove(event) {
     if (!moon) return;
@@ -406,6 +527,12 @@ function animate() {
     requestAnimationFrame(animate);
     controls.update();
     
+    // Animate Markers (Pulsing)
+    const time = performance.now() * 0.005;
+    markers.forEach(m => {
+        m.scale.setScalar(1 + Math.sin(time) * 0.2);
+    });
+
     if (moon) {
         updateTiles();
     }

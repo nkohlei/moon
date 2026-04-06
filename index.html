@@ -25,6 +25,40 @@
             <div class="coord-item">LNG: <span id="lng-display">--.---°</span></div>
         </div>
 
+        <!-- Mission Selection Sidebar -->
+        <div id="sites-sidebar" class="sidebar-glass">
+            <div class="sidebar-header">
+                <h3>MISSION LOG</h3>
+                <p>EXPLORATION SITES</p>
+            </div>
+            <div id="sites-list" class="sites-list">
+                <!-- Points will be injected here via main.js -->
+            </div>
+        </div>
+
+        <!-- Mission Details Panel -->
+        <div id="info-panel" class="info-glass">
+            <button id="close-info" class="close-btn">&times;</button>
+            <div class="info-content">
+                <header>
+                    <h2 id="info-title">MISSION NAME</h2>
+                    <div class="meta-row">
+                        <span id="info-year">YEAR</span>
+                        <span class="separator">|</span>
+                        <span id="info-operator">OPERATOR</span>
+                    </div>
+                </header>
+                <div class="info-body">
+                    <p id="info-description">Description goes here...</p>
+                    <div class="details-box">
+                        <h4>KEY OBJECTIVES</h4>
+                        <p id="info-details">More details...</p>
+                    </div>
+                </div>
+                <button id="fly-to-btn" class="btn-secondary">FLY TO SITE</button>
+            </div>
+        </div>
+
         <div class="loading-overlay" id="loading-overlay">
             <div class="loader"></div>
             <p>STREAMING NASA MISSION MAP...</p>
