@@ -283,8 +283,8 @@ function loadMoon() {
         // Set initial material based on current state
         moon = new THREE.Mesh(geometry, atlasMode ? atlasMaterial : shadedMaterial);
         
-        // CALIBRATION: Rotate moon mesh by 180 degrees (Math.PI) to align LROC Prime Meridian (U=0.5) with +X
-        moon.rotation.y = Math.PI;
+        // CALIBRATION: Rotate moon mesh so 0 Longitude (UV 0.5) faces the camera (+Z)
+        moon.rotation.y = -Math.PI / 2;
 
         scene.add(moon);
         
@@ -378,10 +378,9 @@ function loadTile(tile) {
 }
 
 function getVector3FromLatLng(lat, lng, radius) {
-    // Standard Equirectangular mapping: Center (UV 0.5) maps to Lng 0
-    // After moon.rotation.y = -PI/2, theta aligns correctly with LROC.
+    // CALIBRATION FIX: Face 0° Lng toward camera (+Z) and map accurately
     const phi = (90 - lat) * (Math.PI / 180);
-    const theta = (lng) * (Math.PI / 180); 
+    const theta = (lng + 90) * (Math.PI / 180); 
     
     return new THREE.Vector3(
         radius * Math.sin(phi) * Math.cos(theta),
@@ -396,22 +395,38 @@ function createLandingSiteMarkers() {
     lunarSites.forEach(p => {
         const siteGroup = new THREE.Group();
         
-        // 1. MODERN MINIMALIST LABEL (Interaction Point)
+        // --- 1. 3D NEEDLE (PIN) MARKER ---
+        const needleColor = p.type === "Crewed" ? 0xffcc00 : 0x00ffff;
+        
+        // Needle Base (Thin shaft)
+        const shaftGeo = new THREE.CylinderGeometry(0.005, 0.005, 0.2, 8);
+        const shaftMat = new THREE.MeshBasicMaterial({ color: needleColor });
+        const shaft = new THREE.Mesh(shaftGeo, shaftMat);
+        shaft.position.y = 0.1; // Offset outward from surface
+        shaft.rotation.x = Math.PI / 2; // Point outwards
+        siteGroup.add(shaft);
+
+        // Needle Head (Small sphere on top)
+        const headGeo = new THREE.SphereGeometry(0.015, 16, 16);
+        const headMat = new THREE.MeshBasicMaterial({ color: needleColor });
+        const head = new THREE.Mesh(headGeo, headMat);
+        head.position.z = 0.2; // At the tip of the shaft
+        siteGroup.add(head);
+
+        // --- 2. MINIMALIST LABEL ---
         const labelDiv = document.createElement('div');
         labelDiv.className = 'lunar-label';
-        labelDiv.innerHTML = `
-            <div class="label-dot"></div>
-            <div class="label-text">${p.mission}</div>
-        `;
+        labelDiv.innerHTML = `<div class="label-text">${p.mission}</div>`;
         labelDiv.onclick = () => showSiteInfo(p);
+        
         const label = new CSS2DObject(labelDiv);
-        label.position.set(0, 0, 0);
+        label.position.set(0, 0, 0.25); // Position above the needle head
         siteGroup.add(label);
 
-        // Calculate Position
-        const pos = getVector3FromLatLng(p.coordinates.lat, p.coordinates.lng, RADIUS + 0.03);
+        // Calculate Position on Globe
+        const pos = getVector3FromLatLng(p.coordinates.lat, p.coordinates.lng, RADIUS);
         siteGroup.position.copy(pos);
-        siteGroup.lookAt(new THREE.Vector3(0,0,0)); 
+        siteGroup.lookAt(new THREE.Vector3(0,0,0)); // Always face center for correct normal orientation
         
         siteGroup.userData = { site: p, labelDiv };
         markerGroup.add(siteGroup);
@@ -459,9 +474,11 @@ function showSiteInfo(site) {
         const isSelf = m.userData.site.mission === site.mission;
         if (m.userData.labelDiv) {
             m.userData.labelDiv.classList.toggle('active', isSelf);
-            // In HUD-off mode, only show the active site label
             m.userData.labelDiv.style.display = (hudVisible || isSelf) ? 'flex' : 'none';
         }
+        // Needle Focus Effect
+        m.children[0].scale.setScalar(isSelf ? 1.5 : 1.0);
+        m.children[0].material.opacity = isSelf ? 1 : 0.6;
     });
 }
 
@@ -476,6 +493,8 @@ function closeInfo() {
             m.userData.labelDiv.classList.remove('active');
             m.userData.labelDiv.style.display = hudVisible ? 'flex' : 'none';
         }
+        m.children[0].scale.setScalar(1.0);
+        m.children[0].material.opacity = 0.8;
     });
     
     document.querySelectorAll('.site-item').forEach(el => el.classList.remove('active'));
@@ -560,14 +579,15 @@ function animate() {
     requestAnimationFrame(animate);
     controls.update();
     
-    // Animate Labels (Simple pulse for the small indicator dot)
+    // Animate Needle Pins (Subtle motion)
     if (!isFlying) {
-        const time = performance.now() * 0.005;
+        const time = performance.now() * 0.003;
         markers.forEach(m => {
             const isSelf = activeSite && m.userData.site.mission === activeSite.mission;
-            if (!isSelf && m.userData.labelDiv) {
-                const dot = m.userData.labelDiv.querySelector('.label-dot');
-                if (dot) dot.style.transform = `scale(${1 + Math.sin(time) * 0.2})`;
+            if (!isSelf) {
+                // Subtle rotation or scale pulse for the needle head
+                const head = m.children[1];
+                if (head) head.scale.setScalar(1 + Math.sin(time) * 0.05);
             }
         });
     }
