@@ -17,13 +17,18 @@ let shadedMaterial, atlasMaterial;
 const loadingOverlay = document.getElementById('loading-overlay');
 
 const hideLoading = () => {
-    if (!loadingOverlay) return;
-    loadingOverlay.style.opacity = '0';
+    const overlay = document.getElementById('loading-overlay');
+    if (!overlay) return;
+    overlay.style.opacity = '0';
     setTimeout(() => {
-        loadingOverlay.style.display = 'none';
-        loadingOverlay.remove(); // Cleanup
+        if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
     }, 1000);
 };
+
+// --- EMERGENCY STARTUP FAILSAFE ---
+// Run immediately to ensure the app ALWAYS opens
+window.onerror = () => hideLoading();
+setTimeout(hideLoading, 4000); // 4 second hard limit from script start
 
 // --- MISSION STATE ---
 let markers = [];
@@ -36,79 +41,7 @@ const TILE_ROWS = 27;
 const TILE_COLS = 54;
 const RADIUS = 5;
 
-function init() {
-    // Fail-safe: Hide loading after 3 seconds regardless of asset status
-    setTimeout(hideLoading, 3000); // Tightened from 5s
 
-    // GLOBAL ERROR FAILSAFE
-    window.onerror = () => hideLoading();
-    
-    // Scene setup
-    scene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 30000);
-    camera.position.set(0, 0, 15);
-
-    renderer = new THREE.WebGLRenderer({
-        canvas: document.getElementById('lunar-canvas'),
-        antialias: true
-    });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
-    
-    // Label Renderer (CSS2D)
-    labelRenderer = new CSS2DRenderer();
-    labelRenderer.setSize(window.innerWidth, window.innerHeight);
-    labelRenderer.domElement.style.position = 'absolute';
-    labelRenderer.domElement.style.top = '0px';
-    labelRenderer.domElement.style.pointerEvents = 'none'; // Passthrough
-    document.getElementById('app').appendChild(labelRenderer.domElement);
-
-    // Controls
-    controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.05;
-    controls.minDistance = 6;
-    controls.maxDistance = 50;
-    controls.autoRotate = true;
-    controls.autoRotateSpeed = 0.1;
-
-    // Lighting: Sun + Ambient (Higher intensity for better Sun-facing highlights)
-    sunLight = new THREE.DirectionalLight(0xffffff, 4.2); // Increased from 2.8
-    sunLight.position.set(10000, 4000, 15000); 
-    scene.add(sunLight);
-
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.05);
-    scene.add(ambientLight);
-
-    // Environment
-    createStarfield();
-    createSun();
-    createEarth();
-
-    // UI Initialization
-    setupUI();
-
-    // Moon
-    loadMoon();
-
-    // UI Events
-    document.getElementById('close-info').addEventListener('click', closeInfo);
-    document.getElementById('hud-toggle').addEventListener('click', toggleHUD);
-    document.getElementById('markers-toggle').addEventListener('click', toggleMarkers);
-    
-    window.addEventListener('keydown', (e) => {
-        if (e.key.toLowerCase() === 'h') toggleHUD();
-        if (e.key.toLowerCase() === 'm') toggleMarkers();
-        if (e.key === 'Escape') closeInfo();
-    });
-
-    document.getElementById('fly-to-btn').addEventListener('click', () => {
-        if (activeSite) flyToSite(activeSite);
-    });
-
-    animate();
-}
 
 function setupUI() {
     const btn = document.getElementById('atlas-toggle');
@@ -661,9 +594,85 @@ function animate() {
     labelRenderer.render(scene, camera);
 }
 
+function init() {
+    try {
+        // Scene setup
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 30000);
+        camera.position.set(0, 0, 15);
+
+        renderer = new THREE.WebGLRenderer({
+            canvas: document.getElementById('lunar-canvas'),
+            antialias: true
+        });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.outputColorSpace = THREE.SRGBColorSpace;
+        
+        // Label Renderer (CSS2D)
+        labelRenderer = new CSS2DRenderer();
+        labelRenderer.setSize(window.innerWidth, window.innerHeight);
+        labelRenderer.domElement.style.position = 'absolute';
+        labelRenderer.domElement.style.top = '0px';
+        labelRenderer.domElement.style.pointerEvents = 'none'; // Passthrough
+        document.getElementById('app').appendChild(labelRenderer.domElement);
+
+        // Controls
+        controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.minDistance = 6;
+        controls.maxDistance = 50;
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 0.1;
+
+        // Lighting: Sun + Ambient (Higher intensity for better Sun-facing highlights)
+        sunLight = new THREE.DirectionalLight(0xffffff, 4.2); // Increased from 2.8
+        sunLight.position.set(10000, 4000, 15000); 
+        scene.add(sunLight);
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.05);
+        scene.add(ambientLight);
+
+        // Environment
+        createStarfield();
+        createSun();
+        createEarth();
+
+        // UI Initialization
+        setupUI();
+
+        // Moon
+        loadMoon();
+
+        // UI Events
+        document.getElementById('close-info').addEventListener('click', closeInfo);
+        document.getElementById('hud-toggle').addEventListener('click', toggleHUD);
+        document.getElementById('markers-toggle').addEventListener('click', toggleMarkers);
+        
+        window.addEventListener('keydown', (e) => {
+            if (e.key.toLowerCase() === 'h') toggleHUD();
+            if (e.key.toLowerCase() === 'm') toggleMarkers();
+            if (e.key === 'Escape') closeInfo();
+        });
+
+        document.getElementById('fly-to-btn').addEventListener('click', () => {
+            if (activeSite) flyToSite(activeSite);
+        });
+
+        window.addEventListener('resize', onWindowResize, false);
+        window.addEventListener('mousemove', onMouseMove, false);
+
+        animate();
+    } catch (e) {
+        console.error("Critical Initialization Error:", e);
+        hideLoading();
+    }
+}
+
 init();
 
-// IMMEDIATE FAILSAFE
-setTimeout(() => {
-    if (document.getElementById('loading-overlay')) hideLoading();
-}, 8000);
+// Backup for very slow networks
+window.addEventListener('load', () => {
+    setTimeout(hideLoading, 2000);
+});
