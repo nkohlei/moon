@@ -682,6 +682,12 @@ function init() {
 
         window.addEventListener('resize', onWindowResize, false);
         window.addEventListener('mousemove', onMouseMove, false);
+        window.addEventListener('touchstart', (e) => {
+            if (e.touches.length > 0) onMouseMove(e.touches[0]);
+        }, false);
+        window.addEventListener('touchmove', (e) => {
+            if (e.touches.length > 0) onMouseMove(e.touches[0]);
+        }, false);
 
         animate();
     } catch (e) {
