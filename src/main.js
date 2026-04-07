@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer';
 import { lunarSites } from './lunarSites.js';
 import './style.css';
 
@@ -8,16 +9,16 @@ const TEXTURE_URL = '/moon_8k_lroc.webp'; // High-fidelity LROC 8K equirectangul
 const MOON_RADIUS = 5;
 
 // --- APP STATE ---
-let scene, camera, renderer, controls, moon, earth, sunLight;
+let scene, camera, renderer, labelRenderer, controls, moon, earth, sunLight;
 let atlasMode = false;
-let shadedMaterial, atlasMaterial;
+let hudVisible = true;
+let markersVisible = true;
 const loadingOverlay = document.getElementById('loading-overlay');
 
 // --- MISSION STATE ---
 let markers = [];
 let activeSite = null;
 let isFlying = false;
-let hudVisible = true;
 
 // --- TILING STATE ---
 let tiles = []; 
@@ -39,8 +40,14 @@ function init() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
-    renderer.toneMapping = THREE.NoToneMapping;
-    renderer.toneMappingExposure = 1.0;
+    
+    // Label Renderer (CSS2D)
+    labelRenderer = new CSS2DRenderer();
+    labelRenderer.setSize(window.innerWidth, window.innerHeight);
+    labelRenderer.domElement.style.position = 'absolute';
+    labelRenderer.domElement.style.top = '0px';
+    labelRenderer.domElement.style.pointerEvents = 'none'; // Passthrough
+    document.getElementById('app').appendChild(labelRenderer.domElement);
 
     // Controls
     controls = new OrbitControls(camera, renderer.domElement);
@@ -70,15 +77,14 @@ function init() {
     // Moon
     loadMoon();
 
-    // Event Listeners
-    window.addEventListener('resize', onWindowResize);
-    window.addEventListener('click', onSiteClick);
-    
     // UI Events
     document.getElementById('close-info').addEventListener('click', closeInfo);
     document.getElementById('hud-toggle').addEventListener('click', toggleHUD);
+    document.getElementById('markers-toggle').addEventListener('click', toggleMarkers);
+    
     window.addEventListener('keydown', (e) => {
         if (e.key.toLowerCase() === 'h') toggleHUD();
+        if (e.key.toLowerCase() === 'm') toggleMarkers();
         if (e.key === 'Escape') closeInfo();
     });
 
@@ -122,7 +128,18 @@ function toggleHUD() {
     
     // Dim markers if UI is hidden for total immersion
     markers.forEach(m => {
-        m.visible = hudVisible || (activeSite && m.userData.site.mission === activeSite.mission);
+        m.visible = (hudVisible || (activeSite && m.userData.site.mission === activeSite.mission)) && markersVisible;
+    });
+}
+
+function toggleMarkers() {
+    markersVisible = !markersVisible;
+    const btn = document.getElementById('markers-toggle');
+    btn.classList.toggle('active', markersVisible);
+    document.body.classList.toggle('labels-hidden', !markersVisible);
+    
+    markers.forEach(m => {
+        m.visible = markersVisible;
     });
 }
 
@@ -323,8 +340,8 @@ function loadMoon() {
         // Set initial material based on current state
         moon = new THREE.Mesh(geometry, atlasMode ? atlasMaterial : shadedMaterial);
         
-        // ORIENTATION: Rotated an additional 15 degrees in the current direction (Total -135 / -3 * Math.PI / 4)
-        moon.rotation.y = -(3 * Math.PI) / 4;
+        // CALIBRATION: Rotate moon mesh so Prime Meridian (U=0.5) aligns with world coordinates
+        moon.rotation.y = -Math.PI / 2;
 
         scene.add(moon);
         
@@ -417,10 +434,9 @@ function loadTile(tile) {
     });
 }
 
-// --- LANDING SITES ---
 function getVector3FromLatLng(lat, lng, radius) {
-    // Standard Equirectangular mapping for Three.js SphereGeometry
-    // Lng 0 should be at UV 0.5 (center of map)
+    // Standard Equirectangular mapping: Center (UV 0.5) maps to Lng 0
+    // After moon.rotation.y = -PI/2, theta aligns correctly with LROC.
     const phi = (90 - lat) * (Math.PI / 180);
     const theta = (lng) * (Math.PI / 180); 
     
@@ -440,33 +456,32 @@ function createLandingSiteMarkers() {
         
         const siteGroup = new THREE.Group();
         
-        // 1. Inner Glow Core
+        // 1. Inner Glow Core (Targeting Style)
         const coreGeo = new THREE.CircleGeometry(0.06, 32);
-        const coreMat = new THREE.MeshBasicMaterial({ 
-            color: color, 
-            transparent: true, 
-            opacity: 0.9,
-            side: THREE.DoubleSide 
-        });
+        const coreMat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.9, side: THREE.DoubleSide });
         const core = new THREE.Mesh(coreGeo, coreMat);
         siteGroup.add(core);
 
-        // 2. Outer Scientific Brackets (Crosshair)
-        const bracketGeo = new THREE.RingGeometry(0.12, 0.14, 32, 1, 0, Math.PI * 2);
-        const bracketMat = new THREE.MeshBasicMaterial({ 
-            color: color, 
-            transparent: true, 
-            opacity: 0.4,
-            side: THREE.DoubleSide
-        });
+        // 2. Outer Scientific Brackets
+        const bracketGeo = new THREE.RingGeometry(0.12, 0.14, 32);
+        const bracketMat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.4, side: THREE.DoubleSide });
         const brackets = new THREE.Mesh(bracketGeo, bracketMat);
         siteGroup.add(brackets);
+
+        // 3. MODERN CSS2D LABEL
+        const labelDiv = document.createElement('div');
+        labelDiv.className = 'lunar-label';
+        labelDiv.textContent = p.mission;
+        labelDiv.onclick = () => showSiteInfo(p);
+        const label = new CSS2DObject(labelDiv);
+        label.position.set(0, 0, 0); // At marker center
+        siteGroup.add(label);
 
         const pos = getVector3FromLatLng(p.coordinates.lat, p.coordinates.lng, RADIUS + 0.03);
         siteGroup.position.copy(pos);
         siteGroup.lookAt(new THREE.Vector3(0,0,0)); 
         
-        siteGroup.userData = { site: p };
+        siteGroup.userData = { site: p, labelDiv };
         markerGroup.add(siteGroup);
         markers.push(siteGroup);
     });
@@ -485,7 +500,6 @@ function showSiteInfo(site) {
     document.getElementById('info-details').textContent = site.details;
     document.getElementById('info-image').src = site.image;
     document.getElementById('info-image').onerror = () => {
-        // Fallback if URL fails
         document.getElementById('info-image').src = "https://www.lroc.asu.edu/featured_sites/view_site/1/image";
     };
     document.getElementById('source-link').href = site.source;
@@ -499,18 +513,25 @@ function showSiteInfo(site) {
     document.getElementById('info-panel').classList.add('active');
     controls.autoRotate = false;
     
-    // Focus Highlight in Sidebar
+    // Focus Highlight in Sidebar and Labels
     document.querySelectorAll('.site-item').forEach(el => {
         el.classList.toggle('active', el.dataset.mission === site.mission);
+    });
+    
+    document.querySelectorAll('.lunar-label').forEach(el => {
+        el.classList.toggle('active', el.textContent === site.mission);
     });
 
     // Marker Focus (Dim others)
     markers.forEach(m => {
         const isSelf = m.userData.site.mission === site.mission;
-        // Access group children (Core and Brackets)
-        m.children[0].material.opacity = isSelf ? 1.0 : 0.1;
-        m.children[1].material.opacity = isSelf ? 0.8 : 0.05;
-        m.scale.setScalar(isSelf ? 1.6 : 0.7);
+        m.children[0].material.opacity = isSelf ? 1.0 : 0.05;
+        m.children[1].material.opacity = isSelf ? 0.8 : 0.02;
+        m.scale.setScalar(isSelf ? 1.8 : 0.6);
+        // Toggle label hide if HUD is hidden (except for self)
+        if (m.userData.labelDiv) {
+            m.userData.labelDiv.style.display = (hudVisible || isSelf) ? 'block' : 'none';
+        }
     });
 }
 
@@ -521,12 +542,16 @@ function closeInfo() {
     
     // Reset Markers
     markers.forEach(m => {
-        m.children[0].material.opacity = 0.8; // Reset core
-        m.children[1].material.opacity = 0.4; // Reset brackets
+        m.children[0].material.opacity = 0.8;
+        m.children[1].material.opacity = 0.4;
         m.scale.setScalar(1.0);
+        if (m.userData.labelDiv) {
+            m.userData.labelDiv.style.display = hudVisible ? 'block' : 'none';
+        }
     });
     
     document.querySelectorAll('.site-item').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.lunar-label').forEach(el => el.classList.remove('active'));
 }
 
 function onSiteClick(event) {
@@ -600,19 +625,20 @@ function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
+    labelRenderer.setSize(window.innerWidth, window.innerHeight);
 }
 
 function animate() {
     requestAnimationFrame(animate);
     controls.update();
     
-    // Animate Markers (Only if not flying and site not focused)
+    // Animate Markers
     if (!isFlying) {
         const time = performance.now() * 0.005;
         markers.forEach(m => {
             const isSelf = activeSite && m.userData.site.mission === activeSite.mission;
             if (!isSelf) {
-                m.scale.setScalar(1 + Math.sin(time) * 0.15);
+                m.scale.setScalar(1 + Math.sin(time) * 0.1);
             }
         });
     }
@@ -622,6 +648,7 @@ function animate() {
     }
     
     renderer.render(scene, camera);
+    labelRenderer.render(scene, camera);
 }
 
 init();
