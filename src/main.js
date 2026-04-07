@@ -149,7 +149,7 @@ function createSun() {
     const sunPos = new THREE.Vector3(10000, 4000, 15000); // 60-degree offset from Earth-Moon line
 
     // 1. Core (The Star Object)
-    const sunGeometry = new THREE.SphereGeometry(80, 32, 32);
+    const sunGeometry = new THREE.SphereGeometry(88, 32, 32);
     const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
     const sun = new THREE.Mesh(sunGeometry, sunMaterial);
     sun.position.copy(sunPos);
@@ -225,7 +225,7 @@ function createSun() {
         blending: THREE.AdditiveBlending 
     });
     const sunSprite = new THREE.Sprite(sunSpriteMat);
-    sunSprite.scale.set(9000, 9000, 1); // Enlarged further from 6500 to 9000
+    sunSprite.scale.set(9900, 9900, 1); // Enlarged further by 10% (from 9000 to 9900)
     sun.add(sunSprite);
 
     // 3. Subtle blue haze (Larger)
@@ -239,7 +239,7 @@ function createSun() {
     hCtx.fillRect(0, 0, 128, 128);
     const hazeTex = new THREE.CanvasTexture(hazeCanvas);
     const hazeSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: hazeTex, transparent: true, blending: THREE.AdditiveBlending }));
-    hazeSprite.scale.set(11500, 11500, 1); // Scaled up haze from 8500 to 11500
+    hazeSprite.scale.set(12650, 12650, 1); // Scaled up haze by 10% (from 11500 to 12650)
     sun.add(hazeSprite);
 }
 
@@ -247,7 +247,7 @@ function createEarth() {
     const textureLoader = new THREE.TextureLoader();
     textureLoader.load('/earth_8k.png', (texture) => {
         texture.colorSpace = THREE.SRGBColorSpace;
-        const earthGeometry = new THREE.SphereGeometry(120, 64, 64);
+        const earthGeometry = new THREE.SphereGeometry(145.2, 64, 64);
         const earthMaterial = new THREE.MeshStandardMaterial({ 
             map: texture,
             roughness: 0.4, // Lowered for more light reflection
@@ -489,8 +489,8 @@ function showSiteInfo(site) {
             m.userData.labelDiv.style.display = 'flex';
             m.userData.labelDiv.style.opacity = '1';
         }
-        // Needle Focus Effect (Scale up the whole group slightly)
-        m.scale.setScalar(isSelf ? 2.0 : 1.0);
+        // Needle Focus Effect (REMOVED: Now 'Nail-Fixed' as requested)
+        // m.scale.setScalar(isSelf ? 2.0 : 1.0);
     });
 }
 
@@ -505,7 +505,7 @@ function closeInfo() {
             m.userData.labelDiv.classList.remove('active');
             m.userData.labelDiv.style.display = 'flex';
         }
-        m.scale.setScalar(1.0);
+        // m.scale.setScalar(1.0);
     });
     
     document.querySelectorAll('.site-item').forEach(el => el.classList.remove('active'));
@@ -593,20 +593,18 @@ function onWindowResize() {
 
 function animate() {
     requestAnimationFrame(animate);
+    
+    // DYNAMIC ZOOM SENSITIVITY: Scale rotateSpeed between 0.08 (zoom in) and 0.5 (zoom out)
+    if (camera && controls) {
+        const dist = camera.position.length();
+        // Map distance (6-50) to speed (0.08-0.5)
+        controls.rotateSpeed = 0.08 + (Math.max(0, dist - 6) / (50 - 6)) * 0.42;
+    }
+
     controls.update();
     
-    // Animate Needle Pins (Subtle motion)
-    if (!isFlying) {
-        const time = performance.now() * 0.003;
-        markers.forEach(m => {
-            const isSelf = activeSite && m.userData.site.mission === activeSite.mission;
-            if (!isSelf) {
-                // Subtle rotation or scale pulse for the needle head
-                const head = m.children[1];
-                if (head) head.scale.setScalar(1 + Math.sin(time) * 0.05);
-            }
-        });
-    }
+    // 'NAIL-FIXED' STABILITY: No idle animations for markers to ensure total stillness
+    // (Previously had pulse animation here, now removed for fixed professional feel)
 
     if (moon) {
         updateTiles();

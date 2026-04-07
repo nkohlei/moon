@@ -423,34 +423,38 @@ canvas#lunar-canvas {
     align-items: center;
     pointer-events: auto !important;
     cursor: pointer;
-    transition: all 0.3s ease;
     user-select: none;
+    backface-visibility: hidden; /* NAIL-FIXED STABILITY */
+    transform-style: preserve-3d;
 }
 
 .label-text {
     color: #fff;
     font-family: 'Inter', sans-serif;
-    font-size: 9px; /* Slightly smaller for all-visible names */
+    font-size: 9px;
     font-weight: 500;
     letter-spacing: 1.5px;
     text-transform: uppercase;
     text-shadow: 0 2px 4px rgba(0,0,0,1);
-    opacity: 1; /* PERMANENT OPACITY */
+    opacity: 1;
     white-space: nowrap;
-    transition: all 0.3s ease;
+    backface-visibility: hidden; /* NAIL-FIXED STABILITY */
 }
 
+/* Interaction disabled for nail-fixed feel */
+/*
 .lunar-label:hover .label-text {
     opacity: 1;
     letter-spacing: 2.5px;
     transform: scale(1.1);
 }
+*/
 
 /* Permanent labels - no opacity change on HUD hidden */
+/* Location names hide when menus close (HUD hidden) */
 .hud-hidden .lunar-label {
-    opacity: 1 !important;
-    display: flex !important;
-    pointer-events: auto !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
 }
 
 .lunar-label::before {
@@ -490,6 +494,7 @@ canvas#lunar-canvas {
     background: rgba(255, 0, 0, 0.6);
 }
 
+/* Even active labels hide when HUD is off for total immersion */
 .hud-hidden .lunar-label.active {
-    opacity: 1 !important;
+    opacity: 0 !important;
 }
