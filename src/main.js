@@ -65,9 +65,22 @@ function setupUI() {
         item.className = 'site-item';
         item.innerHTML = `<h4>${p.mission}</h4>`;
         item.dataset.mission = p.mission;
-        item.onclick = () => showSiteInfo(p);
+        item.onclick = () => {
+            showSiteInfo(p);
+            // On mobile, close the drawer after selection
+            document.getElementById('sites-sidebar').classList.remove('mobile-open');
+        };
         list.appendChild(item);
     });
+
+    // Mobile Menu Toggle
+    const mobileBtn = document.getElementById('mobile-menu-btn');
+    const sidebar = document.getElementById('sites-sidebar');
+    if (mobileBtn && sidebar) {
+        mobileBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('mobile-open');
+        });
+    }
 }
 
 function toggleHUD() {
