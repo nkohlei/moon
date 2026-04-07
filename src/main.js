@@ -454,6 +454,7 @@ function showSiteInfo(site) {
     document.getElementById('info-description').textContent = site.description;
     document.getElementById('info-details').textContent = site.details;
     const imgEl = document.getElementById('info-image');
+    imgEl.style.display = 'block'; // ENSURE VISIBILITY
     imgEl.src = site.image;
     imgEl.onerror = () => {
         imgEl.src = "https://www.lroc.asu.edu/featured_sites/view_site/1/image";
@@ -483,7 +484,7 @@ function showSiteInfo(site) {
         const isSelf = m.userData.site.mission === site.mission;
         if (m.userData.labelDiv) {
             m.userData.labelDiv.classList.toggle('active', isSelf);
-            // FORCED VISIBILITY (ALWAYS ON)
+            // FORCED VISIBILITY (STRICT)
             m.userData.labelDiv.style.display = 'flex';
             m.userData.labelDiv.style.opacity = '1';
         }

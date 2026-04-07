@@ -458,6 +458,33 @@ canvas#lunar-canvas {
     position: absolute;
     bottom: -5px;
     left: 50%;
+    width: 2px;
+    height: 12px;
+    background: rgba(255, 0, 0, 0.8);
+    box-shadow: 0 0 5px rgba(255, 0, 0, 0.4);
+}
+
+/* Image Loading Experience Fix */
+#info-image-container {
+    background: linear-gradient(90deg, #0a0a0a 25%, #1a1a1a 50%, #0a0a0a 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite linear;
+}
+
+@keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+#info-image {
+    transition: opacity 0.4s ease-in-out;
+}
+
+.lunar-label::before {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
     width: 1px;
     height: 10px;
     background: rgba(255, 0, 0, 0.6);
