@@ -396,24 +396,24 @@ function createLandingSiteMarkers() {
         const siteGroup = new THREE.Group();
         
         // --- 1. 3D NEEDLE (PIN) MARKER (Modern High-Vis Red) ---
-        const needleColor = 0xff0000; 
+        const needleColor = 0xff0022; 
         
         // Needle Shaft (Ultra-thin cylinder)
-        const shaftGeo = new THREE.CylinderGeometry(0.001, 0.001, 0.08, 8);
+        const shaftGeo = new THREE.CylinderGeometry(0.0007, 0.0007, 0.06, 8);
         const shaftMat = new THREE.MeshBasicMaterial({ color: needleColor });
         const shaft = new THREE.Mesh(shaftGeo, shaftMat);
-        shaft.position.y = 0.04; 
+        shaft.position.y = 0.03; 
         siteGroup.add(shaft);
 
         // Needle Head (Minimalist top sphere)
-        const headGeo = new THREE.SphereGeometry(0.004, 16, 16);
+        const headGeo = new THREE.SphereGeometry(0.003, 16, 16);
         const headMat = new THREE.MeshBasicMaterial({ color: needleColor });
         const head = new THREE.Mesh(headGeo, headMat);
-        head.position.y = 0.08; 
+        head.position.y = 0.06; 
         siteGroup.add(head);
 
         // Needle Tip (Sharp cone at bottom)
-        const tipGeo = new THREE.ConeGeometry(0.001, 0.004, 8);
+        const tipGeo = new THREE.ConeGeometry(0.0007, 0.003, 8);
         const tipMat = new THREE.MeshBasicMaterial({ color: needleColor });
         const tip = new THREE.Mesh(tipGeo, tipMat);
         tip.rotation.x = Math.PI; 
@@ -454,7 +454,8 @@ function showSiteInfo(site) {
     document.getElementById('info-description').textContent = site.description;
     document.getElementById('info-details').textContent = site.details;
     const imgEl = document.getElementById('info-image');
-    imgEl.style.display = 'block'; // ENSURE VISIBILITY
+    imgEl.style.display = 'block'; // ENSURE DISPLAY
+    imgEl.style.opacity = '1';      // ENSURE OPACITY
     imgEl.src = site.image;
     imgEl.onerror = () => {
         imgEl.src = "https://www.lroc.asu.edu/featured_sites/view_site/1/image";
