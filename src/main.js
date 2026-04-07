@@ -395,25 +395,25 @@ function createLandingSiteMarkers() {
     lunarSites.forEach(p => {
         const siteGroup = new THREE.Group();
         
-        // --- 1. 3D NEEDLE (PIN) MARKER ---
-        const needleColor = p.type === "Crewed" ? 0xffcc00 : 0x00ffff;
+        // --- 1. 3D NEEDLE (PIN) MARKER (Modern Red) ---
+        const needleColor = 0xff3b3b; 
         
         // Needle Shaft (Very thin cylinder)
-        const shaftGeo = new THREE.CylinderGeometry(0.003, 0.003, 0.15, 8);
+        const shaftGeo = new THREE.CylinderGeometry(0.002, 0.002, 0.12, 8);
         const shaftMat = new THREE.MeshBasicMaterial({ color: needleColor });
         const shaft = new THREE.Mesh(shaftGeo, shaftMat);
         shaft.position.y = 0.075; 
         siteGroup.add(shaft);
 
         // Needle Head (Small sphere on top)
-        const headGeo = new THREE.SphereGeometry(0.012, 16, 16);
+        const headGeo = new THREE.SphereGeometry(0.01, 16, 16);
         const headMat = new THREE.MeshBasicMaterial({ color: needleColor });
         const head = new THREE.Mesh(headGeo, headMat);
-        head.position.y = 0.15; 
+        head.position.y = 0.12; 
         siteGroup.add(head);
 
         // Needle Tip (Small cone at the bottom for sharpness)
-        const tipGeo = new THREE.ConeGeometry(0.003, 0.01, 8);
+        const tipGeo = new THREE.ConeGeometry(0.002, 0.008, 8);
         const tipMat = new THREE.MeshBasicMaterial({ color: needleColor });
         const tip = new THREE.Mesh(tipGeo, tipMat);
         tip.rotation.x = Math.PI; // Point down
@@ -477,12 +477,13 @@ function showSiteInfo(site) {
         el.classList.toggle('active', el.textContent === site.mission);
     });
 
-    // Label Focus (Dim others)
+    // Label Focus (Red Highlight)
     markers.forEach(m => {
         const isSelf = m.userData.site.mission === site.mission;
         if (m.userData.labelDiv) {
             m.userData.labelDiv.classList.toggle('active', isSelf);
-            m.userData.labelDiv.style.display = (hudVisible || isSelf) ? 'flex' : 'none';
+            // LATEST: Keep all labels display:flex as requested, no hiding
+            m.userData.labelDiv.style.display = 'flex';
         }
         // Needle Focus Effect (Scale up the whole group slightly)
         m.scale.setScalar(isSelf ? 2.0 : 1.0);
@@ -494,11 +495,11 @@ function closeInfo() {
     activeSite = null;
     controls.autoRotate = true;
     
-    // Reset Labels
+    // Reset Labels (Always Visible)
     markers.forEach(m => {
         if (m.userData.labelDiv) {
             m.userData.labelDiv.classList.remove('active');
-            m.userData.labelDiv.style.display = hudVisible ? 'flex' : 'none';
+            m.userData.labelDiv.style.display = 'flex';
         }
         m.scale.setScalar(1.0);
     });
