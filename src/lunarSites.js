@@ -5,10 +5,10 @@ export const lunarSites = [
     year: 1969,
     operator: "NASA",
     coordinates: { lat: 0.67408, lng: 23.47297 },
-    image: "https://www.lroc.asu.edu/featured_sites/view_site/1/image",
-    source: "https://www.nasa.gov/mission_pages/apollo/missions/apollo11.html",
-    description: "The first crewed mission to land on the Moon. Buzz Aldrin and Neil Armstrong landed the Eagle module in Mare Tranquillitatis.",
-    details: "First human footsteps on the Moon. Collected 21.5 kg of lunar material."
+    image: "https://www.nasa.gov/wp-content/uploads/2023/07/69-h-665-orig.jpg", // Official Crew Portrait
+    source: "https://www.nasa.gov/mission/apollo-11/",
+    description: "The first crewed mission to land on the Moon. 'That's one small step for man, one giant leap for mankind.'",
+    details: "Crew: Neil Armstrong, Buzz Aldrin, Michael Collins. Site: Sea of Tranquility (Mare Tranquillitatis)."
   },
   {
     mission: "Apollo 12",
@@ -16,10 +16,10 @@ export const lunarSites = [
     year: 1969,
     operator: "NASA",
     coordinates: { lat: -3.01239, lng: -23.42157 },
-    image: "https://www.lroc.asu.edu/featured_sites/view_site/2/image",
-    source: "https://www.nasa.gov/mission_pages/apollo/missions/apollo12.html",
-    description: "Second crewed landing. Landed in Oceanus Procellarum near structural remains of Surveyor 3.",
-    details: "Demonstrated precision landing. Returned parts of Surveyor 3."
+    image: "https://images-assets.nasa.gov/image/as12-48-7133/as12-48-7133~orig.jpg", // Alan Bean on surface
+    source: "https://www.nasa.gov/mission/apollo-12/",
+    description: "Second crewed landing. Executed a precision landing near the Surveyor 3 robotic probe.",
+    details: "Crew: Pete Conrad, Alan Bean, Richard Gordon. Site: Ocean of Storms (Oceanus Procellarum)."
   },
   {
     mission: "Apollo 14",
@@ -27,10 +27,10 @@ export const lunarSites = [
     year: 1971,
     operator: "NASA",
     coordinates: { lat: -3.6453, lng: -17.47136 },
-    image: "https://www.lroc.asu.edu/featured_sites/view_site/12/image",
-    source: "https://www.nasa.gov/mission_pages/apollo/missions/apollo14.html",
+    image: "https://images-assets.nasa.gov/image/as14-66-9306/as14-66-9306~orig.jpg", // Mitchell on surface
+    source: "https://www.nasa.gov/mission/apollo-14/",
     description: "Third crewed landing. Site of the first lunar color television broadcast.",
-    details: "Explored the Fra Mauro formation. Alan Shepard hit a golf ball on the Moon."
+    details: "Crew: Alan Shepard (hit a golf ball here), Edgar Mitchell, Stuart Roosa. Site: Fra Mauro highlands."
   },
   {
     mission: "Apollo 15",
@@ -38,10 +38,10 @@ export const lunarSites = [
     year: 1971,
     operator: "NASA",
     coordinates: { lat: 26.1322, lng: 3.6339 },
-    image: "https://www.lroc.asu.edu/featured_sites/view_site/4/image",
-    source: "https://www.nasa.gov/mission_pages/apollo/missions/apollo15.html",
+    image: "https://images-assets.nasa.gov/image/as15-88-11863/as15-88-11863~orig.jpg", // Irwin with Lunar Rover
+    source: "https://www.nasa.gov/mission/apollo-15/",
     description: "Fourth crewed landing. First mission to use the Lunar Roving Vehicle (LRV).",
-    details: "Landed near Hadley Rille and the Apennine Mountains."
+    details: "Crew: David Scott, James Irwin, Alfred Worden. Site: Hadley-Apennine region."
   },
   {
     mission: "Apollo 16",
@@ -49,10 +49,10 @@ export const lunarSites = [
     year: 1972,
     operator: "NASA",
     coordinates: { lat: -8.973, lng: 15.5 },
-    image: "https://www.lroc.asu.edu/featured_sites/view_site/5/image",
-    source: "https://www.nasa.gov/mission_pages/apollo/missions/apollo16.html",
-    description: "Fifth crewed landing. Focus on the Descartes Highlands.",
-    details: "Tested the Lunar Rover's speed and durability on rough terrain."
+    image: "https://images-assets.nasa.gov/image/as16-113-18339/as16-113-18339~orig.jpg", // Young jumping on moon
+    source: "https://www.nasa.gov/mission/apollo-16/",
+    description: "Fifth crewed landing. Focus on exploring the lunar highlands.",
+    details: "Crew: John Young, Charles Duke, Ken Mattingly. Site: Descartes Highlands."
   },
   {
     mission: "Apollo 17",
@@ -60,21 +60,21 @@ export const lunarSites = [
     year: 1972,
     operator: "NASA",
     coordinates: { lat: 20.1908, lng: 30.7717 },
-    image: "https://www.lroc.asu.edu/featured_sites/view_site/6/image",
-    source: "https://www.nasa.gov/mission_pages/apollo/missions/apollo17.html",
-    description: "The final mission of the Apollo program. Gene Cernan was the last human to walk on the Moon.",
-    details: "Landed in the Taurus-Littrow valley. Harrison Schmitt was the first scientist-astronaut."
+    image: "https://images-assets.nasa.gov/image/as17-147-22527/as17-147-22527~orig.jpg", // Schmitt working at rover
+    source: "https://www.nasa.gov/mission/apollo-17/",
+    description: "The final mission of the Apollo program. Featured the first scientist-astronaut.",
+    details: "Crew: Gene Cernan (last human on moon), Harrison Schmitt (geologist), Ronald Evans. Site: Taurus-Littrow."
   },
   {
     mission: "Luna 2",
     type: "Uncrewed",
     year: 1959,
     operator: "Soviet Union",
-    coordinates: { lat: 29.1, lng: 1.0 },
-    image: "https://nssdc.gsfc.nasa.gov/image/spacecraft/luna2.jpg",
+    coordinates: { lat: 29.1, lng: 0.0 },
+    image: "https://nssdc.gsfc.nasa.gov/img/luna2_lander.jpg", // Luna 2 mock-up/concept
     source: "https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=1959-014A",
-    description: "The first man-made object to reach the surface of the Moon.",
-    details: "Impacted in Palus Putredinis."
+    description: "The first man-made object to reach the surface of the Moon (Impact).",
+    details: "Paved the way for mapping missions. Proven absence of a lunar magnetic field."
   },
   {
     mission: "Luna 9",
@@ -82,21 +82,21 @@ export const lunarSites = [
     year: 1966,
     operator: "Soviet Union",
     coordinates: { lat: 7.08, lng: -64.37 },
-    image: "https://nssdc.gsfc.nasa.gov/image/nmc/luna9_mod.jpg",
+    image: "https://nssdc.gsfc.nasa.gov/image/spacecraft/luna_9.jpg", // Luna 9 capsule
     source: "https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=1966-006A",
     description: "First survivable 'soft landing' on the lunar surface.",
     details: "Sent back the first panoramic images from the Moon's surface."
   },
   {
-    mission: "Chang'e 3",
+    mission: "Luna 17 (Lunokhod 1)",
     type: "Uncrewed",
-    year: 2013,
-    operator: "CNSA",
-    coordinates: { lat: 44.12, lng: -19.51 },
-    image: "https://www.lroc.asu.edu/posts/715/image",
-    source: "https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=2013-070A",
-    description: "First Chang'e mission to soft-land on the Moon, carrying the Yutu rover.",
-    details: "Landed in Mare Imbrium."
+    year: 1970,
+    operator: "Soviet Union",
+    coordinates: { lat: 38.28, lng: -35.0 },
+    image: "https://nssdc.gsfc.nasa.gov/image/spacecraft/luna_17.jpg", // Lunokhod 1 rover
+    source: "https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=1970-095A",
+    description: "First robotic lunar rover (Lunokhod 1). Guided by earth controllers.",
+    details: "Traveled over 10km across Mare Imbrium during 11 lunar days."
   },
   {
     mission: "Chang'e 4",
@@ -104,10 +104,10 @@ export const lunarSites = [
     year: 2019,
     operator: "CNSA",
     coordinates: { lat: -45.457, lng: 177.589 },
-    image: "https://www.lroc.asu.edu/posts/1085/image",
-    source: "https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=2018-103A",
+    image: "https://www.planetary.org/widgets/planetary-image-browser/images/change-4-lander-full.jpg", // Lander on surface
+    source: "https://www.planetary.org/space-missions/change-4",
     description: "First spacecraft to land on the far side of the Moon.",
-    details: "Landed in the Von Kármán crater."
+    details: "Landed in the Von Kármán crater within the South Pole-Aitken basin."
   },
   {
     mission: "Chandrayaan-3",
@@ -115,10 +115,10 @@ export const lunarSites = [
     year: 2023,
     operator: "ISRO",
     coordinates: { lat: -69.373, lng: 32.319 },
-    image: "https://www.isro.gov.in/media_isro/image/index/Chandrayaan3/C3_Lander_Landing_Site.jpg",
+    image: "https://www.isro.gov.in/media_isro/image/index/CH3_Lander_Surface.jpg", // Vikram lander surface shot
     source: "https://www.isro.gov.in/Chandrayaan3_Details.html",
     description: "First mission to land near the lunar south pole.",
-    details: "Successfully deployed the Pragyan rover."
+    details: "Successfully deployed the Pragyan rover on the high-latitude lunar plains."
   },
   {
     mission: "SLIM",
@@ -126,10 +126,10 @@ export const lunarSites = [
     year: 2024,
     operator: "JAXA",
     coordinates: { lat: -13.31, lng: 25.25 },
-    image: "https://global.jaxa.jp/projects/sas/slim/images/slim_main.jpg",
+    image: "https://global.jaxa.jp/projects/sas/slim/images/slim_main_pc.jpg", // SLIM lander view
     source: "https://global.jaxa.jp/projects/sas/slim/",
-    description: "Precision landing mission within 100 meters of target.",
-    details: "Known as the 'Moon Sniper'."
+    description: "Precision landing mission within 100 meters of target (Moon Sniper).",
+    details: "Landed in the Shioli crater using vision-based navigation."
   },
   {
     mission: "Odysseus",
@@ -139,7 +139,7 @@ export const lunarSites = [
     coordinates: { lat: -80.13, lng: 1.44 },
     image: "https://www.intuitivemachines.com/_next/image?url=%2Fstatic%2Fimages%2Fodysseus_landing.jpg&w=1920&q=75",
     source: "https://www.intuitivemachines.com/im-1",
-    description: "First private spacecraft to soft-land on the Moon.",
-    details: "Landed near the Malapert A crater."
+    description: "First private spacecraft to soft-land on the Moon (IM-1).",
+    details: "Landed near Malapert A crater at the lunar south pole."
   }
 ];

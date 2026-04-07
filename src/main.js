@@ -283,8 +283,8 @@ function loadMoon() {
         // Set initial material based on current state
         moon = new THREE.Mesh(geometry, atlasMode ? atlasMaterial : shadedMaterial);
         
-        // CALIBRATION: Rotate moon mesh so Prime Meridian (U=0.5) aligns with world coordinates
-        moon.rotation.y = -Math.PI / 2;
+        // CALIBRATION: Rotate moon mesh by 180 degrees (Math.PI) to align LROC Prime Meridian (U=0.5) with +X
+        moon.rotation.y = Math.PI;
 
         scene.add(moon);
         
@@ -394,32 +394,21 @@ function createLandingSiteMarkers() {
     const markerGroup = new THREE.Group();
     
     lunarSites.forEach(p => {
-        const isCrewed = p.type === "Crewed";
-        const color = isCrewed ? 0xffcc00 : 0x00ffff;
-        
         const siteGroup = new THREE.Group();
         
-        // 1. Inner Glow Core (Targeting Style)
-        const coreGeo = new THREE.CircleGeometry(0.06, 32);
-        const coreMat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.9, side: THREE.DoubleSide });
-        const core = new THREE.Mesh(coreGeo, coreMat);
-        siteGroup.add(core);
-
-        // 2. Outer Scientific Brackets
-        const bracketGeo = new THREE.RingGeometry(0.12, 0.14, 32);
-        const bracketMat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.4, side: THREE.DoubleSide });
-        const brackets = new THREE.Mesh(bracketGeo, bracketMat);
-        siteGroup.add(brackets);
-
-        // 3. MODERN CSS2D LABEL
+        // 1. MODERN MINIMALIST LABEL (Interaction Point)
         const labelDiv = document.createElement('div');
         labelDiv.className = 'lunar-label';
-        labelDiv.textContent = p.mission;
+        labelDiv.innerHTML = `
+            <div class="label-dot"></div>
+            <div class="label-text">${p.mission}</div>
+        `;
         labelDiv.onclick = () => showSiteInfo(p);
         const label = new CSS2DObject(labelDiv);
-        label.position.set(0, 0, 0); // At marker center
+        label.position.set(0, 0, 0);
         siteGroup.add(label);
 
+        // Calculate Position
         const pos = getVector3FromLatLng(p.coordinates.lat, p.coordinates.lng, RADIUS + 0.03);
         siteGroup.position.copy(pos);
         siteGroup.lookAt(new THREE.Vector3(0,0,0)); 
@@ -575,13 +564,14 @@ function animate() {
     requestAnimationFrame(animate);
     controls.update();
     
-    // Animate Markers
+    // Animate Labels (Simple pulse for the small indicator dot)
     if (!isFlying) {
         const time = performance.now() * 0.005;
         markers.forEach(m => {
             const isSelf = activeSite && m.userData.site.mission === activeSite.mission;
-            if (!isSelf) {
-                m.scale.setScalar(1 + Math.sin(time) * 0.1);
+            if (!isSelf && m.userData.labelDiv) {
+                const dot = m.userData.labelDiv.querySelector('.label-dot');
+                if (dot) dot.style.transform = `scale(${1 + Math.sin(time) * 0.2})`;
             }
         });
     }
