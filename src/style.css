@@ -449,7 +449,18 @@ canvas#lunar-canvas {
 /* Permanent labels - no opacity change on HUD hidden */
 .hud-hidden .lunar-label {
     opacity: 1 !important;
+    display: flex !important;
     pointer-events: auto !important;
+}
+
+.lunar-label::before {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    width: 1px;
+    height: 10px;
+    background: rgba(255, 0, 0, 0.6);
 }
 
 .hud-hidden .lunar-label.active {

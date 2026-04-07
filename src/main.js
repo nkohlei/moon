@@ -395,8 +395,8 @@ function createLandingSiteMarkers() {
     lunarSites.forEach(p => {
         const siteGroup = new THREE.Group();
         
-        // --- 1. 3D NEEDLE (PIN) MARKER (Modern Neon Red) ---
-        const needleColor = 0xff0044; 
+        // --- 1. 3D NEEDLE (PIN) MARKER (Modern High-Vis Red) ---
+        const needleColor = 0xff0000; 
         
         // Needle Shaft (Ultra-thin cylinder)
         const shaftGeo = new THREE.CylinderGeometry(0.001, 0.001, 0.08, 8);
@@ -405,14 +405,14 @@ function createLandingSiteMarkers() {
         shaft.position.y = 0.04; 
         siteGroup.add(shaft);
 
-        // Needle Head (Small sphere on top)
-        const headGeo = new THREE.SphereGeometry(0.005, 16, 16);
+        // Needle Head (Minimalist top sphere)
+        const headGeo = new THREE.SphereGeometry(0.004, 16, 16);
         const headMat = new THREE.MeshBasicMaterial({ color: needleColor });
         const head = new THREE.Mesh(headGeo, headMat);
         head.position.y = 0.08; 
         siteGroup.add(head);
 
-        // Needle Tip (Sharp cone at the bottom)
+        // Needle Tip (Sharp cone at bottom)
         const tipGeo = new THREE.ConeGeometry(0.001, 0.004, 8);
         const tipMat = new THREE.MeshBasicMaterial({ color: needleColor });
         const tip = new THREE.Mesh(tipGeo, tipMat);
@@ -454,12 +454,9 @@ function showSiteInfo(site) {
     document.getElementById('info-description').textContent = site.description;
     document.getElementById('info-details').textContent = site.details;
     const imgEl = document.getElementById('info-image');
-    imgEl.style.opacity = '0';
     imgEl.src = site.image;
-    imgEl.onload = () => { imgEl.style.opacity = '1'; };
     imgEl.onerror = () => {
         imgEl.src = "https://www.lroc.asu.edu/featured_sites/view_site/1/image";
-        imgEl.style.opacity = '1';
     };
     document.getElementById('source-link').href = site.source;
     
@@ -486,8 +483,9 @@ function showSiteInfo(site) {
         const isSelf = m.userData.site.mission === site.mission;
         if (m.userData.labelDiv) {
             m.userData.labelDiv.classList.toggle('active', isSelf);
-            // FORCED VISIBILITY
+            // FORCED VISIBILITY (ALWAYS ON)
             m.userData.labelDiv.style.display = 'flex';
+            m.userData.labelDiv.style.opacity = '1';
         }
         // Needle Focus Effect (Scale up the whole group slightly)
         m.scale.setScalar(isSelf ? 2.0 : 1.0);
