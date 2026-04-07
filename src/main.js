@@ -395,25 +395,25 @@ function createLandingSiteMarkers() {
     lunarSites.forEach(p => {
         const siteGroup = new THREE.Group();
         
-        // --- 1. 3D NEEDLE (PIN) MARKER (Modern Red) ---
-        const needleColor = 0xff3b3b; 
+        // --- 1. 3D NEEDLE (PIN) MARKER (Modern High-Vis Red) ---
+        const needleColor = 0xff0033; 
         
-        // Needle Shaft (Very thin cylinder)
-        const shaftGeo = new THREE.CylinderGeometry(0.002, 0.002, 0.12, 8);
+        // Needle Shaft (Thinner cylinder)
+        const shaftGeo = new THREE.CylinderGeometry(0.0015, 0.0015, 0.1, 8);
         const shaftMat = new THREE.MeshBasicMaterial({ color: needleColor });
         const shaft = new THREE.Mesh(shaftGeo, shaftMat);
         shaft.position.y = 0.075; 
         siteGroup.add(shaft);
 
         // Needle Head (Small sphere on top)
-        const headGeo = new THREE.SphereGeometry(0.01, 16, 16);
+        const headGeo = new THREE.SphereGeometry(0.008, 16, 16);
         const headMat = new THREE.MeshBasicMaterial({ color: needleColor });
         const head = new THREE.Mesh(headGeo, headMat);
-        head.position.y = 0.12; 
+        head.position.y = 0.1; 
         siteGroup.add(head);
 
-        // Needle Tip (Small cone at the bottom for sharpness)
-        const tipGeo = new THREE.ConeGeometry(0.002, 0.008, 8);
+        // Needle Tip (Sharp cone at the bottom)
+        const tipGeo = new THREE.ConeGeometry(0.0015, 0.006, 8);
         const tipMat = new THREE.MeshBasicMaterial({ color: needleColor });
         const tip = new THREE.Mesh(tipGeo, tipMat);
         tip.rotation.x = Math.PI; // Point down
@@ -477,12 +477,12 @@ function showSiteInfo(site) {
         el.classList.toggle('active', el.textContent === site.mission);
     });
 
-    // Label Focus (Red Highlight)
+    // Label Interaction (Red Highlight)
     markers.forEach(m => {
         const isSelf = m.userData.site.mission === site.mission;
         if (m.userData.labelDiv) {
             m.userData.labelDiv.classList.toggle('active', isSelf);
-            // LATEST: Keep all labels display:flex as requested, no hiding
+            // ALWAYS SHOW Labels
             m.userData.labelDiv.style.display = 'flex';
         }
         // Needle Focus Effect (Scale up the whole group slightly)
