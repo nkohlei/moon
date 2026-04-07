@@ -378,9 +378,9 @@ function loadTile(tile) {
 }
 
 function getVector3FromLatLng(lat, lng, radius) {
-    // CALIBRATION FIX: Face 0° Lng toward camera (+Z) and map accurately
+    // CALIBRATION FIX: Standard orientation (East = Right (+X), West = Left (-X))
     const phi = (90 - lat) * (Math.PI / 180);
-    const theta = (lng + 90) * (Math.PI / 180); 
+    const theta = (90 - lng) * (Math.PI / 180); 
     
     return new THREE.Vector3(
         radius * Math.sin(phi) * Math.cos(theta),
@@ -398,35 +398,43 @@ function createLandingSiteMarkers() {
         // --- 1. 3D NEEDLE (PIN) MARKER ---
         const needleColor = p.type === "Crewed" ? 0xffcc00 : 0x00ffff;
         
-        // Needle Base (Thin shaft)
-        const shaftGeo = new THREE.CylinderGeometry(0.005, 0.005, 0.2, 8);
+        // Needle Shaft (Very thin cylinder)
+        const shaftGeo = new THREE.CylinderGeometry(0.003, 0.003, 0.15, 8);
         const shaftMat = new THREE.MeshBasicMaterial({ color: needleColor });
         const shaft = new THREE.Mesh(shaftGeo, shaftMat);
-        shaft.position.y = 0.1; // Offset outward from surface
-        shaft.rotation.x = Math.PI / 2; // Point outwards
+        shaft.position.y = 0.075; 
         siteGroup.add(shaft);
 
         // Needle Head (Small sphere on top)
-        const headGeo = new THREE.SphereGeometry(0.015, 16, 16);
+        const headGeo = new THREE.SphereGeometry(0.012, 16, 16);
         const headMat = new THREE.MeshBasicMaterial({ color: needleColor });
         const head = new THREE.Mesh(headGeo, headMat);
-        head.position.z = 0.2; // At the tip of the shaft
+        head.position.y = 0.15; 
         siteGroup.add(head);
 
-        // --- 2. MINIMALIST LABEL ---
+        // Needle Tip (Small cone at the bottom for sharpness)
+        const tipGeo = new THREE.ConeGeometry(0.003, 0.01, 8);
+        const tipMat = new THREE.MeshBasicMaterial({ color: needleColor });
+        const tip = new THREE.Mesh(tipGeo, tipMat);
+        tip.rotation.x = Math.PI; // Point down
+        siteGroup.add(tip);
+
+        // --- 2. THE LABEL ---
         const labelDiv = document.createElement('div');
         labelDiv.className = 'lunar-label';
         labelDiv.innerHTML = `<div class="label-text">${p.mission}</div>`;
         labelDiv.onclick = () => showSiteInfo(p);
         
         const label = new CSS2DObject(labelDiv);
-        label.position.set(0, 0, 0.25); // Position above the needle head
+        label.position.set(0, 0.2, 0); // Above the pin head
         siteGroup.add(label);
 
         // Calculate Position on Globe
         const pos = getVector3FromLatLng(p.coordinates.lat, p.coordinates.lng, RADIUS);
         siteGroup.position.copy(pos);
-        siteGroup.lookAt(new THREE.Vector3(0,0,0)); // Always face center for correct normal orientation
+        
+        // Orient the needle to point straight out from the surface (Normal)
+        siteGroup.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), pos.clone().normalize());
         
         siteGroup.userData = { site: p, labelDiv };
         markerGroup.add(siteGroup);
@@ -476,9 +484,8 @@ function showSiteInfo(site) {
             m.userData.labelDiv.classList.toggle('active', isSelf);
             m.userData.labelDiv.style.display = (hudVisible || isSelf) ? 'flex' : 'none';
         }
-        // Needle Focus Effect
-        m.children[0].scale.setScalar(isSelf ? 1.5 : 1.0);
-        m.children[0].material.opacity = isSelf ? 1 : 0.6;
+        // Needle Focus Effect (Scale up the whole group slightly)
+        m.scale.setScalar(isSelf ? 2.0 : 1.0);
     });
 }
 
@@ -493,8 +500,7 @@ function closeInfo() {
             m.userData.labelDiv.classList.remove('active');
             m.userData.labelDiv.style.display = hudVisible ? 'flex' : 'none';
         }
-        m.children[0].scale.setScalar(1.0);
-        m.children[0].material.opacity = 0.8;
+        m.scale.setScalar(1.0);
     });
     
     document.querySelectorAll('.site-item').forEach(el => el.classList.remove('active'));
@@ -561,10 +567,15 @@ function onMouseMove(event) {
     if (intersects.length > 0) {
         const p = intersects[0].point;
         const lat = Math.asin(p.y / MOON_RADIUS) * (180 / Math.PI);
-        const lng = Math.atan2(p.z, -p.x) * (180 / Math.PI) - 180;
+        const lng = 90 - (Math.atan2(p.z, p.x) * 180 / Math.PI);
         
+        // Normalize lng to -180, 180
+        let normLng = ((lng + 180) % 360);
+        if (normLng < 0) normLng += 360;
+        normLng -= 180;
+
         document.getElementById('lat-display').textContent = `${lat.toFixed(3)}°`;
-        document.getElementById('lng-display').textContent = `${lng.toFixed(3)}°`;
+        document.getElementById('lng-display').textContent = `${normLng.toFixed(3)}°`;
     }
 }
 
