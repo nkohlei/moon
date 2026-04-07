@@ -30,7 +30,7 @@ export const lunarSites = [
     image: "https://images-assets.nasa.gov/image/as14-66-9306/as14-66-9306~orig.jpg", // Mitchell on surface
     source: "https://www.nasa.gov/mission/apollo-14/",
     description: "Third crewed landing. Site of the first lunar color television broadcast.",
-    details: "Crew: Alan Shepard (hit a golf ball here), Edgar Mitchell, Stuart Roosa. Site: Fra Mauro highlands."
+    details: "Crew: Alan Shepard, Edgar Mitchell, Stuart Roosa. Shepard hit a golf ball on the Moon here."
   },
   {
     mission: "Apollo 15",
@@ -63,7 +63,7 @@ export const lunarSites = [
     image: "https://images-assets.nasa.gov/image/as17-147-22527/as17-147-22527~orig.jpg", // Schmitt working at rover
     source: "https://www.nasa.gov/mission/apollo-17/",
     description: "The final mission of the Apollo program. Featured the first scientist-astronaut.",
-    details: "Crew: Gene Cernan (last human on moon), Harrison Schmitt (geologist), Ronald Evans. Site: Taurus-Littrow."
+    details: "Crew: Gene Cernan, Harrison Schmitt (geologist), Ronald Evans. Site: Taurus-Littrow."
   },
   {
     mission: "Luna 2",
@@ -74,7 +74,7 @@ export const lunarSites = [
     image: "https://nssdc.gsfc.nasa.gov/img/luna2_lander.jpg", // Luna 2 mock-up/concept
     source: "https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=1959-014A",
     description: "The first man-made object to reach the surface of the Moon (Impact).",
-    details: "Paved the way for mapping missions. Proven absence of a lunar magnetic field."
+    details: "Paved the way for future exploration. Proven absence of a lunar magnetic field."
   },
   {
     mission: "Luna 9",

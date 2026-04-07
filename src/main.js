@@ -454,15 +454,13 @@ function showSiteInfo(site) {
         el.classList.toggle('active', el.textContent === site.mission);
     });
 
-    // Marker Focus (Dim others)
+    // Label Focus (Dim others)
     markers.forEach(m => {
         const isSelf = m.userData.site.mission === site.mission;
-        m.children[0].material.opacity = isSelf ? 1.0 : 0.05;
-        m.children[1].material.opacity = isSelf ? 0.8 : 0.02;
-        m.scale.setScalar(isSelf ? 1.8 : 0.6);
-        // Toggle label hide if HUD is hidden (except for self)
         if (m.userData.labelDiv) {
-            m.userData.labelDiv.style.display = (hudVisible || isSelf) ? 'block' : 'none';
+            m.userData.labelDiv.classList.toggle('active', isSelf);
+            // In HUD-off mode, only show the active site label
+            m.userData.labelDiv.style.display = (hudVisible || isSelf) ? 'flex' : 'none';
         }
     });
 }
@@ -472,13 +470,11 @@ function closeInfo() {
     activeSite = null;
     controls.autoRotate = true;
     
-    // Reset Markers
+    // Reset Labels
     markers.forEach(m => {
-        m.children[0].material.opacity = 0.8;
-        m.children[1].material.opacity = 0.4;
-        m.scale.setScalar(1.0);
         if (m.userData.labelDiv) {
-            m.userData.labelDiv.style.display = hudVisible ? 'block' : 'none';
+            m.userData.labelDiv.classList.remove('active');
+            m.userData.labelDiv.style.display = hudVisible ? 'flex' : 'none';
         }
     });
     
