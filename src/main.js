@@ -395,28 +395,28 @@ function createLandingSiteMarkers() {
     lunarSites.forEach(p => {
         const siteGroup = new THREE.Group();
         
-        // --- 1. 3D NEEDLE (PIN) MARKER (Modern High-Vis Red) ---
-        const needleColor = 0xff0033; 
+        // --- 1. 3D NEEDLE (PIN) MARKER (Modern Neon Red) ---
+        const needleColor = 0xff0044; 
         
-        // Needle Shaft (Thinner cylinder)
-        const shaftGeo = new THREE.CylinderGeometry(0.0015, 0.0015, 0.1, 8);
+        // Needle Shaft (Ultra-thin cylinder)
+        const shaftGeo = new THREE.CylinderGeometry(0.001, 0.001, 0.08, 8);
         const shaftMat = new THREE.MeshBasicMaterial({ color: needleColor });
         const shaft = new THREE.Mesh(shaftGeo, shaftMat);
-        shaft.position.y = 0.075; 
+        shaft.position.y = 0.04; 
         siteGroup.add(shaft);
 
         // Needle Head (Small sphere on top)
-        const headGeo = new THREE.SphereGeometry(0.008, 16, 16);
+        const headGeo = new THREE.SphereGeometry(0.005, 16, 16);
         const headMat = new THREE.MeshBasicMaterial({ color: needleColor });
         const head = new THREE.Mesh(headGeo, headMat);
-        head.position.y = 0.1; 
+        head.position.y = 0.08; 
         siteGroup.add(head);
 
         // Needle Tip (Sharp cone at the bottom)
-        const tipGeo = new THREE.ConeGeometry(0.0015, 0.006, 8);
+        const tipGeo = new THREE.ConeGeometry(0.001, 0.004, 8);
         const tipMat = new THREE.MeshBasicMaterial({ color: needleColor });
         const tip = new THREE.Mesh(tipGeo, tipMat);
-        tip.rotation.x = Math.PI; // Point down
+        tip.rotation.x = Math.PI; 
         siteGroup.add(tip);
 
         // --- 2. THE LABEL ---
@@ -453,9 +453,13 @@ function showSiteInfo(site) {
     document.getElementById('info-operator').textContent = site.operator;
     document.getElementById('info-description').textContent = site.description;
     document.getElementById('info-details').textContent = site.details;
-    document.getElementById('info-image').src = site.image;
-    document.getElementById('info-image').onerror = () => {
-        document.getElementById('info-image').src = "https://www.lroc.asu.edu/featured_sites/view_site/1/image";
+    const imgEl = document.getElementById('info-image');
+    imgEl.style.opacity = '0';
+    imgEl.src = site.image;
+    imgEl.onload = () => { imgEl.style.opacity = '1'; };
+    imgEl.onerror = () => {
+        imgEl.src = "https://www.lroc.asu.edu/featured_sites/view_site/1/image";
+        imgEl.style.opacity = '1';
     };
     document.getElementById('source-link').href = site.source;
     
@@ -477,12 +481,12 @@ function showSiteInfo(site) {
         el.classList.toggle('active', el.textContent === site.mission);
     });
 
-    // Label Interaction (Red Highlight)
+    // Label Interaction (Red Sharp Highlight)
     markers.forEach(m => {
         const isSelf = m.userData.site.mission === site.mission;
         if (m.userData.labelDiv) {
             m.userData.labelDiv.classList.toggle('active', isSelf);
-            // ALWAYS SHOW Labels
+            // FORCED VISIBILITY
             m.userData.labelDiv.style.display = 'flex';
         }
         // Needle Focus Effect (Scale up the whole group slightly)
