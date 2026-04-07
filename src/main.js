@@ -13,7 +13,17 @@ let scene, camera, renderer, labelRenderer, controls, moon, earth, sunLight;
 let atlasMode = false;
 let hudVisible = true;
 let markersVisible = true;
+let shadedMaterial, atlasMaterial;
 const loadingOverlay = document.getElementById('loading-overlay');
+
+const hideLoading = () => {
+    if (!loadingOverlay) return;
+    loadingOverlay.style.opacity = '0';
+    setTimeout(() => {
+        loadingOverlay.style.display = 'none';
+        loadingOverlay.remove(); // Cleanup
+    }, 1000);
+};
 
 // --- MISSION STATE ---
 let markers = [];
@@ -28,6 +38,9 @@ const RADIUS = 5;
 
 // --- INITIALIZATION ---
 function init() {
+    // Fail-safe: Hide loading after 5 seconds regardless of asset status
+    setTimeout(hideLoading, 5000);
+
     // Scene setup
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 30000);
@@ -315,11 +328,6 @@ function createEarth() {
 function loadMoon() {
     const textureLoader = new THREE.TextureLoader();
     textureLoader.setCrossOrigin('anonymous');
-    
-    const hideLoading = () => {
-        loadingOverlay.style.opacity = '0';
-        setTimeout(() => loadingOverlay.style.display = 'none', 1000);
-    };
 
     textureLoader.load(TEXTURE_URL, (texture) => {
         texture.colorSpace = THREE.SRGBColorSpace; 
