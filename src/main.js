@@ -36,11 +36,13 @@ const TILE_ROWS = 27;
 const TILE_COLS = 54;
 const RADIUS = 5;
 
-// --- INITIALIZATION ---
 function init() {
-    // Fail-safe: Hide loading after 5 seconds regardless of asset status
-    setTimeout(hideLoading, 5000);
+    // Fail-safe: Hide loading after 3 seconds regardless of asset status
+    setTimeout(hideLoading, 3000); // Tightened from 5s
 
+    // GLOBAL ERROR FAILSAFE
+    window.onerror = () => hideLoading();
+    
     // Scene setup
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 30000);
@@ -660,3 +662,8 @@ function animate() {
 }
 
 init();
+
+// IMMEDIATE FAILSAFE
+setTimeout(() => {
+    if (document.getElementById('loading-overlay')) hideLoading();
+}, 8000);
